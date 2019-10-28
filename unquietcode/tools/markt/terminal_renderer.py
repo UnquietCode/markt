@@ -3,8 +3,10 @@ from pyfiglet import Figlet
 
 # https://github.com/miyuchina/mistletoe/blob/master/mistletoe/base_renderer.py
 # 
+    # 'Document':       self.render_document,
     # 'Strong':         self.render_strong,
     # 'Emphasis':       self.render_emphasis,
+    # 'Strikethrough':  self.render_strikethrough,
     # 'LineBreak':      self.render_line_break,
 
 
@@ -18,14 +20,14 @@ from pyfiglet import Figlet
     # 'List':           self.render_list,
     # 'ListItem':       self.render_list_item,
     # 'ThematicBreak':  self.render_thematic_break,
-    # 'Document':       self.render_document,
     # 'AutoLink':       self.render_auto_link,
-    # 'InlineCode':     self.render_inline_code,
-    # 'Strikethrough':  self.render_strikethrough,
     # 'EscapeSequence': self.render_escape_sequence,
     # 'Image':          self.render_image,
+    
+    # 'InlineCode':     self.render_inline_code,
     # 'CodeFence':      self.render_block_code,
     # 'BlockCode':      self.render_block_code,
+    
     # 'Table':          self.render_table,
     # 'TableRow':       self.render_table_row,
     # 'TableCell':      self.render_table_cell,
@@ -38,7 +40,6 @@ class TerminalRenderer(BaseRenderer):
 
     def __init__(self, *extras):
         super().__init__(*extras)
-        self.previous = None
     
     def render_document(self, token):
         rendered = "\n"
@@ -125,5 +126,33 @@ class TerminalRenderer(BaseRenderer):
         rendered += "\n"
         return rendered
     
-    # def render_block_code(self, token):
-        # pass
+    
+    def render_list(self, token):
+        rendered = ""
+        counter = None
+        
+        if token.start is not None:
+            counter = token.start
+        
+        for child in token.children:
+            if counter is not None:
+                rendered += f"{counter}. "
+                counter += 1
+            else:
+                prefix = ' ' * (child.prepend - 2)
+                rendered += f"{prefix}{child.leader} "
+            
+            rendered += self.render(child)
+        
+        rendered += "\n"
+        return rendered
+    
+    
+    def render_list_item(self, token):
+        rendered = ""
+        line = self.render_inner(token)
+        
+        if line.strip():
+            rendered += f"{line.strip()}\n"
+        
+        return rendered
