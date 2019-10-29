@@ -18,15 +18,13 @@ from pyfiglet import Figlet
     # 'InlineCode':     self.render_inline_code,
     # 'BlockCode':      self.render_block_code,
 
-
+    # 'List':           self.render_list,
+    # 'ListItem':       self.render_list_item,
     # 'Heading':        self.render_heading,
     # 'SetextHeading':  self.render_heading,
     # 'Link':           self.render_link,
-    # 'List':           self.render_list,
-    # 'ListItem':       self.render_list_item,
-        
     # 'RawText':        self.render_raw_text,
-
+    
     # 'AutoLink':       self.render_auto_link,
     # 'EscapeSequence': self.render_escape_sequence,
     # 'Image':          self.render_image,
@@ -36,7 +34,7 @@ from pyfiglet import Figlet
     # 'Table':          self.render_table,
     # 'TableRow':       self.render_table_row,
     # 'TableCell':      self.render_table_cell,
-    # 
+    
 
 # TODO wrapping by width of terminal
 
