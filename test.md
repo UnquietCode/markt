@@ -1,32 +1,32 @@
-# Heading ( 1 )
+# Some Heading ( 1 )
 It contains some _italic_ and some **bold**,
 as well as ~~strikethrough~~ and
 
-## Heading ( 2 )
+## Another Heading ( 2 )
 Yeah.
 
-### Heading ( 3 )
+### Much Heading ( 3 )
 Uh-huh.
 
 > this is a block quote
 > that takes up some space
 
-#### Heading ( 4 )
+#### Less Heading ( 4 )
 [hmmm](hello.com)
 
-##### Heading ( 5 )
+##### Still a Heading ( 5 )
 yikes.
 
-###### Heading ( 6 )
+###### Meh Heading ( 6 )
 double yikes!
 
 
 Also a list of:
 
-- one
- - two
-  - three
- - four
+* one
+ * two
+  * three
+ * four
 
 ---------------------------
   
