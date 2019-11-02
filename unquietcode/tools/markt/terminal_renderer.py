@@ -7,7 +7,7 @@ from mistletoe.base_renderer import BaseRenderer
 from pyfiglet import Figlet
 
 # https://github.com/miyuchina/mistletoe/blob/master/mistletoe/base_renderer.py
-# 
+
     # 'Document':       self.render_document,
     # 'Strong':         self.render_strong,
     # 'Emphasis':       self.render_emphasis,
@@ -17,24 +17,51 @@ from pyfiglet import Figlet
     # 'Paragraph':      self.render_paragraph,
     # 'ThematicBreak':  self.render_thematic_break,
     # 'InlineCode':     self.render_inline_code,
-    # 'BlockCode':      self.render_block_code,
-
+    # 'CodeFence':      self.render_block_code,
+    # 'Link':           self.render_link,
     # 'List':           self.render_list,
     # 'ListItem':       self.render_list_item,
     # 'Heading':        self.render_heading,
-    # 'SetextHeading':  self.render_heading,
-    # 'Link':           self.render_link,
+    
     # 'RawText':        self.render_raw_text,
-    
     # 'AutoLink':       self.render_auto_link,
-    # 'EscapeSequence': self.render_escape_sequence,
+    # 'EscapeSequence': self.render_escape_sequence,    
+    # 'SetextHeading':  self.render_heading,
+    
     # 'Image':          self.render_image,
-    
-    # 'CodeFence':      self.render_block_code,
-    
+    # 'BlockCode':      self.render_block_code,
     # 'Table':          self.render_table,
     # 'TableRow':       self.render_table_row,
     # 'TableCell':      self.render_table_cell,
+
+
+def prefixed(prefix):
+    
+    def outer(fn):
+        
+        # wraps.
+        def decorated(*args, **kwargs):
+            result = fn(*args, **kwargs)
+            return prefix + result
+            
+        return decorated
+    
+    return outer
+
+
+def sufixed(suffix):
+    
+    def outer(fn):
+        
+        # wraps.
+        def decorated(*args, **kwargs):
+            result = fn(*args, **kwargs)
+            return result + suffix
+            
+        return decorated
+    
+    return outer
+
     
 
 # TODO wrapping by width of terminal
@@ -53,6 +80,9 @@ def dim(text):
 
 def strikethrough(text):
     return f"\x1B[9m{text}\x1B[0m"
+
+def grey(text):
+    return f"  \x1B[37m{text}\x1B[0m"
 
 
 class TerminalRenderer(BaseRenderer):
@@ -153,39 +183,46 @@ class TerminalRenderer(BaseRenderer):
     def render_link(self, token):
         return f"{self.render_inner(token)} ({underlined(token.target)})"
 
-    
+    # @prefixed('\n')
+    @sufixed('\n')
     def render_heading(self, token):
-        text = self.render_inner(token)
-        space = max(2, 3 - token.level)
+        space = 2
+        text = self.render_to_plain(token)
         
         if token.level == 1:
-            return '\n\n' + self.figlet('standard', text.replace(' ', '  '), space=space) + '\n\n'
+            return self.figlet('standard', text.replace(' ', '  '), space=space)
 
         elif token.level == 2:
             rendered = self.figlet('ogre', text, space=space)
             
-            lines = rendered.splitlines()
+            # make the last line underlined
+            lines = rendered.split('\n')
             last_line = lines[-1]
-            last_line = self._spacer + underlined(last_line[len(self._spacer):])
+            longest_line = max([len(line) for line in lines])
+            
+            line_to_underline = last_line[len(self._spacer):]
+            line_to_underline += ' ' * (longest_line - len(line_to_underline))
+            
+            last_line = self._spacer + underlined(line_to_underline)
             lines[-1] = last_line
             rendered = '\n'.join(lines)
             
-            return f"\n\n{rendered}\n\n"
+            return f"{rendered}\n"
         
         elif token.level == 3:
-            return '\n\n' + self.figlet('cybermedium', text, space=space) + '\n\n'
+            return self.figlet('cybermedium', text, space=space)
             
         elif token.level == 4:
-            return f"\n\n{self._spacer}{underlined(bold(self.render_inner(token).upper()))}\n\n"
+            return f"{self._spacer}{underlined(bold(self.render_inner(token).upper()))}"
 
         elif token.level == 5:
-            return f"\n\n{self._spacer}{dim(underlined(bold(self.render_inner(token).upper())))}\n\n"
+            return f"{self._spacer}{dim(underlined(bold(self.render_inner(token).upper())))}"
                     
         elif token.level >= 6:
-            return f"\n\n{self._spacer}{dim(underlined(self.render_inner(token).upper()))}\n\n"
+            return f"{self._spacer}{dim(underlined(self.render_inner(token).upper()))}"
         
         else:
-            return f"\n\n{self._spacer}{underlined(self.render_inner(token))}\n\n"
+            return f"{self._spacer}{underlined(self.render_inner(token))}"
         
     
     # def render_banner(self, token):
@@ -199,24 +236,24 @@ class TerminalRenderer(BaseRenderer):
     # # 
     #     # rendered += '\n\n' + text + '\n' + rendered
         # return rendered
-
+    
+    @staticmethod
+    def invert_case(text):
+        new = []
+        
+        for x in text:
+            if x.isupper():
+                new.append(x.lower())
+            elif x.islower():
+                new.append(x.upper())
+            else:
+                new.append(x)
+        
+        return ''.join(new)
+    
     def render_banner(self, token):
-        
-        def invert(text):
-            new = []
-            
-            for x in text:
-                if x.isupper():
-                    new.append(x.lower())
-                elif x.islower():
-                    new.append(x.upper())
-                else:
-                    new.append(x)
-            
-            return ''.join(new)
-        
         text = self.render_inner(token)
-        text = self.figlet('com_sen_', invert(text), space=2)
+        text = self.figlet('com_sen_', invert_case(text), space=2)
         
         lines = text.splitlines()
         line = "=" * (max(len(lines[0]), len(lines[-1])) -1)
@@ -238,7 +275,7 @@ class TerminalRenderer(BaseRenderer):
         text = self.render_inner(token)
         rendered = ""
         
-        text = " ".join(text.splitlines())
+        text = " ".join(text.split('\n'))
         lines = textwrap.wrap(text.strip(), width=self._margin)
         
         for line in lines:
@@ -256,7 +293,8 @@ class TerminalRenderer(BaseRenderer):
 
         for line in innards.splitlines():
             if line.strip():
-                rendered += f"{self._spacer}\x1B[37m|  {line.strip()}\x1B[0m\n"
+                inner = grey(f"|  {line.strip()}")
+                rendered += f"{self._spacer}{inner}\n"
             else:
                 rendered += line
 
@@ -297,9 +335,9 @@ class TerminalRenderer(BaseRenderer):
     
     def render_block_code(self, token):
         innards = self.render_inner(token)
-        rendered = '\n'
+        rendered = ''
 
-        for line in innards.splitlines():
+        for line in innards.split('\n'):
             if line.strip():
                 wrapped_lines = textwrap.wrap(line.strip(), width=self._margin)
                 
